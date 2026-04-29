@@ -25,10 +25,15 @@ Get Chromium running with hardware acceleration enabled without crashing Waybar 
 - If DE crashes, user will restart and log experiment as crash
 
 ## What's Been Tried
-- **Baseline**: Current chromium-flags.conf needs examination. Initial state: Chromium with HW accel kills Waybar/Hyprland.
-- NVIDIA GTX 1050 with proprietary drivers (assumed from OpenGL vendor string)
+- **Run 1-2**: Baseline tests with about:blank and WebGL demo - stability=1 (no crash) but chrome://gpu shows ALL HW acceleration DISABLED
+- **chrome://gpu findings**: Canvas, Compositing, OpenGL, Rasterization, Video Decode/Encode, WebGL all DISABLED
+- **WebGL error**: "BindToCurrentSequence failed" - GPU context creation failing
+- **Root cause**: `--render-node-override=/dev/dri/renderD128` likely wrong for NVIDIA - NVIDIA doesn't use DRM render nodes same way
+- NVIDIA GTX 1050 with proprietary drivers
 
 ## Notes
 - chrome://gpu report can be captured via: `chromium --headless=new --remote-debugging-port=9222` + curl to fetch GPU page data
 - Alternative: parse `chromium --enable-logging --v=1 2>&1 | grep -i gpu` for GPU init info
 - Crashes may be due to NVIDIA driver bugs, Waybar's GPU usage, or Chromium's GPU process conflicts
+- **NVIDIA + Wayland + Chromium**: May need `GBM_BACKEND=nvidia` env var, remove render-node-override
+- **Next**: Fix flags to actually enable HW acceleration, then test for crashes
